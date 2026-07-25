@@ -1,0 +1,582 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!55!black,
+  citecolor=blue!55!black,
+  urlcolor=blue!55!black,
+  pdftitle={A variance-and-sieve route to Erdos Problem 971},
+  pdfauthor={Kyungmin}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Candidate verification note for Erd\H{o}s Problem 971}
+\rhead{Page \thepage\ of \pageref{LastPage}}
+\setlength{\headheight}{14pt}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{checkpoint}[theorem]{Verification checkpoint}
+
+\DeclareMathOperator{\li}{li}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\ph}{\varphi}
+\newcommand{\RR}{\mathbb R}
+\newcommand{\NN}{\mathbb N}
+\newcommand{\ind}{\mathbf 1}
+\newcommand{\Ss}{\mathfrak S}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\bigO}{\mathrm O}
+
+\definecolor{statusblue}{RGB}{235,244,252}
+\definecolor{statusborder}{RGB}{48,97,145}
+\definecolor{codebg}{RGB}{247,247,247}
+
+\lstdefinelanguage{Lean}{
+  morekeywords={theorem,lemma,def,namespace,end,noncomputable,section,open,import,structure,where,by,have,exact,apply,simpa,using,fun,if,then,else,let,in,with},
+  sensitive=true,
+  morecomment=[l]{--},
+  morecomment=[s]{/-}{-/},
+  morestring=[b]"
+}
+\lstset{
+  language=Lean,
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  xleftmargin=0.5em,
+  xrightmargin=0.5em
+}
+
+\title{\bfseries A Variance-and-Sieve Route to Erd\H{o}s Problem 971\\[0.5em]
+\large Candidate proof and Lean-checked finite reduction}
+\author{Kyungmin}
+\date{25 July 2026}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\fcolorbox{statusborder}{statusblue}{%
+\begin{minipage}{0.91\textwidth}
+\textbf{Submission status.}
+This is a candidate unconditional argument posted for independent verification, not a claim that the problem has already been accepted as solved.
+The accompanying Lean 4 file kernel-checks the finite combinatorial reduction and the bridge from prime occupancies to least congruent primes, conditional on explicit analytic estimates.
+It does \emph{not} formalize the Friedlander--Goldston variance theorem, the uniform three-tuple upper sieve, or the asymptotic estimates used to instantiate those hypotheses.
+A successful Lean compilation therefore verifies the logical core, but not yet the full analytic-number-theory proof.
+\end{minipage}}
+\end{center}
+
+\begin{abstract}
+Let $p(a,q)$ denote the least prime congruent to $a \pmod q$.
+Erd\H{o}s Problem 971 asks whether there is an absolute $c>0$ such that, for every sufficiently large $q$,
+\[
+  p(a,q)>(1+c)\ph(q)\log q
+\]
+for a positive proportion of the reduced residue classes $a\pmod q$.
+This note presents a candidate argument based on two published sieve-theoretic inputs.
+At the critical cutoff $X\sim \ph(q)\log q$, a pointwise lower bound for Hooley's variance yields a lower bound $C_2\gg\ph(q)$ for the second factorial moment of the numbers of primes in the reduced residue classes.
+A uniform upper-bound sieve for three linear forms, combined with an elementary average of its singular series, yields $C_3\ll\ph(q)$ for the third factorial moment.
+These two estimates imply that a positive proportion of classes contain at least two primes below $X$.
+Since the total number of prime incidences below $X$ is only $\ph(q)+o(\ph(q))$, a positive proportion of classes are empty.
+The empty-class estimate survives enlargement of the cutoff to $(1+c)\ph(q)\log q$ for sufficiently small fixed $c>0$.
+The accompanying Lean development checks the entire finite implication from the moment hypotheses to the least-prime conclusion.
+The main purpose of this submission is to expose the exact analytic and formal verification points to expert scrutiny.
+\end{abstract}
+
+\tableofcontents
+
+\section{Problem and claimed conclusion}
+
+For $(a,q)=1$, define
+\[
+  p(a,q):=\min\{p\in\Pp:p\equiv a\pmod q\}.
+\]
+Dirichlet's theorem guarantees that the set is nonempty.
+The problem asks whether there are absolute constants $c,C>0$ such that, for all sufficiently large $q$,
+\begin{equation}\label{eq:target}
+  \#\left\{a\bmod q:(a,q)=1,\ p(a,q)>(1+c)\ph(q)\log q\right\}
+  \ge C\ph(q).
+\end{equation}
+The Erd\H{o}s Problems database currently lists this as open and records that Erd\H{o}s proved the assertion only for an infinite sequence of moduli \cite{ErdosProblems971,Erdos1950}.
+Leung obtained the expected exponential law for the least prime under a uniform Hardy--Littlewood prime $k$-tuple hypothesis \cite{Leung2024}.
+
+The argument below proposes an unconditional proof of \eqref{eq:target} from existing pointwise variance and upper-bound sieve estimates.
+Because the conclusion would close a problem still publicly listed as open, every uniformity statement is isolated explicitly.
+
+\section{Critical cutoff and factorial moments}
+
+Write
+\[
+  \Phi:=\ph(q),\qquad
+  R:=\left\lfloor\frac{\Phi\log q}{q}\right\rfloor,
+  \qquad X:=qR.
+\]
+The standard lower bound $\ph(q)/q\gg 1/\log\log q$ implies $R\to\infty$.
+Moreover,
+\begin{equation}\label{eq:cutoff-asymp}
+  X=(1+o(1))\Phi\log q,
+  \qquad \log X=(1+o(1))\log q,
+  \qquad \frac{X}{\log X}=(1+o(1))\Phi.
+\end{equation}
+Since $R\le \log q$ and $X\ge q$ for large $q$,
+\begin{equation}\label{eq:FG-range}
+  q=\frac XR\ge \frac{X}{\log X}.
+\end{equation}
+Thus $(X,q)$ lies in the large-modulus range required by the Friedlander--Goldston lower bound with $A=1$.
+
+For each reduced residue class $a\pmod q$, set
+\[
+  N_a=N_a(X):=\#\{p\le X:p\equiv a\pmod q\}.
+\]
+Define the factorial moments
+\begin{equation}\label{eq:moments}
+  C_2:=\sum_{a\bmod q}^{*}\binom{N_a}{2},
+  \qquad
+  C_3:=\sum_{a\bmod q}^{*}\binom{N_a}{3}.
+\end{equation}
+The proposed proof reduces the analytic work to
+\begin{equation}\label{eq:key-moments}
+  C_2\gg\Phi,
+  \qquad
+  C_3\ll\Phi.
+\end{equation}
+
+\section{The second moment from pointwise variance}
+
+For a reduced class $a\pmod q$, put
+\[
+  \psi_a:=\sum_{\substack{n\le X\\ n\equiv a\ (q)}}\Lambda(n),
+  \qquad
+  S:=\sum_{\substack{n\le X\\(n,q)=1}}\Lambda(n).
+\]
+Use the naturally centered variance
+\begin{equation}\label{eq:variance}
+  V_S(X;q):=\sum_{a\bmod q}^{*}
+  \left(\psi_a-\frac{S}{\Phi}\right)^2.
+\end{equation}
+Friedlander and Goldston proved a pointwise lower bound of the conjectured order in the range $X/(\log X)^A\le q\le X$; Fiorilli records it in the form
+\begin{equation}\label{eq:FG}
+  V(X;q)\ge \left(\frac12-o(1)\right)X\log q
+\end{equation}
+for every fixed $A>0$, uniformly in that range \cite{FriedlanderGoldston1996,Fiorilli2015}.
+If the cited formulation is centered at $X/\Phi$ rather than $S/\Phi$, the identity
+\[
+  \sum_a^*\left(\psi_a-\frac{X}{\Phi}\right)^2
+  =V_S(X;q)+\frac{(S-X)^2}{\Phi}
+\]
+and $S=X+o(X)$ transfer \eqref{eq:FG} to \eqref{eq:variance}, because $(S-X)^2/\Phi=o(X\log q)$ at the present cutoff.
+
+Define
+\[
+  D_\Lambda:=\sum_{\substack{n\le X\\(n,q)=1}}\Lambda(n)^2
+\]
+and
+\[
+  P_\Lambda:=
+  \sum_{\substack{m<n\le X\\m\equiv n\ (q)\\(mn,q)=1}}
+  \Lambda(m)\Lambda(n).
+\]
+Expanding the square gives the exact identity
+\begin{equation}\label{eq:variance-expansion}
+  V_S(X;q)=D_\Lambda+2P_\Lambda-\frac{S^2}{\Phi}.
+\end{equation}
+The prime number theorem and partial summation give
+\[
+  S=X+o(X),\qquad D_\Lambda=X\log X+O(X).
+\]
+Deleting prime powers whose underlying prime divides $q$ costs only $O(\log X\log q)$.
+From the definition of $X$,
+\[
+  \frac{X}{\Phi}=\log q+O\!\left(\frac q\Phi\right)
+  =\log q+O(\log\log q),
+\]
+and $\log X=\log q+O(\log\log q)$. Hence
+\begin{equation}\label{eq:diagonal-cancel}
+  D_\Lambda-\frac{S^2}{\Phi}=o(X\log q).
+\end{equation}
+Combining \eqref{eq:FG}, \eqref{eq:variance-expansion}, and \eqref{eq:diagonal-cancel} yields
+\begin{equation}\label{eq:weighted-pairs}
+  P_\Lambda\ge \left(\frac14-o(1)\right)X\log q.
+\end{equation}
+
+There are $O(X^{1/2})$ proper prime powers below $X$.
+For each such number there are at most $R+1=O(\log X)$ numbers below $X$ in the same residue class, and each pair has weight at most $(\log X)^2$.
+Thus all pairs involving a proper prime power contribute
+\[
+  O\!\left(X^{1/2}R(\log X)^2\right)=o(X\log q).
+\]
+The remaining contribution in \eqref{eq:weighted-pairs} comes from pairs of distinct primes.
+Since every prime-pair weight is at most $(\log X)^2$,
+\begin{equation}\label{eq:C2}
+  C_2\gg \frac{X\log q}{(\log X)^2}\gg\Phi.
+\end{equation}
+
+\begin{checkpoint}[Pointwise variance input]\label{check:variance}
+The crucial issue is that \eqref{eq:FG} must be a lower bound for each individual modulus $q$, uniformly for $X/(\log X)^A\le q\le X$, rather than an estimate only after averaging over $q$.
+Fiorilli's introduction explicitly distinguishes the average results from the Friedlander--Goldston pointwise lower bound and states the latter with constant $1/2$ \cite{Fiorilli2015}.
+Reviewers should nevertheless compare the exact normalization and uniformity with the original theorem in \cite{FriedlanderGoldston1996}.
+\end{checkpoint}
+
+\section{The third moment from a uniform three-tuple upper sieve}
+
+Each unordered triple $p_0<p_1<p_2\le X$ in one residue class has a unique representation
+\[
+  p_1=p_0+rq,\qquad p_2=p_0+sq,
+  \qquad 1\le r<s<R.
+\]
+Therefore
+\begin{equation}\label{eq:C3-shifts}
+  C_3=\sum_{1\le r<s<R}T_q(r,s),
+\end{equation}
+where
+\[
+  T_q(r,s):=
+  \#\{p\le X-sq:p,\ p+rq,\ p+sq\text{ are prime}\}.
+\]
+We may enlarge the range to $p\le X$.
+
+For a prime $\ell$, let $\nu_\ell(r,s;q)$ be the number of distinct residues among
+\[
+  0,\ -rq,\ -sq\pmod\ell.
+\]
+Define
+\begin{equation}\label{eq:singular-series}
+  \Ss_q(r,s):=
+  \prod_{\ell}
+  \left(1-\frac{\nu_\ell(r,s;q)}{\ell}\right)
+  \left(1-\frac1\ell\right)^{-3}.
+\end{equation}
+If the triple is admissible, a uniform upper-bound sieve gives
+\begin{equation}\label{eq:tuple-upper}
+  T_q(r,s)\ll \Ss_q(r,s)\frac{X}{(\log X)^3},
+\end{equation}
+with an absolute implied constant.
+For direct reproducibility, Theorem 1 of Dubbe gives an explicit $K=3$ version for primes $p\le X$ such that $a_i p+b_i$ are prime; taking $a_1=a_2=1$, $b_1=rq$, and $b_2=sq$ gives \eqref{eq:tuple-upper} \cite{Dubbe2024}.
+The nondegeneracy determinant is $r s(s-r)q^3\ne0$.
+
+If the triple is not admissible, some prime $\ell\le3$ divides one of the three values for every $p$.
+If all three values are prime, one of them must equal $\ell$.
+Consequently
+\begin{equation}\label{eq:nonadmissible}
+  T_q(r,s)\le3
+\end{equation}
+for every nonadmissible pair $(r,s)$.
+
+\subsection{Uniform singular-series average}
+
+If $\ell\mid q$, then $\nu_\ell=1$, and the local factor in \eqref{eq:singular-series} is
+\[
+  \left(1-\frac1\ell\right)^{-2}.
+\]
+Thus the full contribution of primes dividing $q$ is exactly
+\begin{equation}\label{eq:q-factor}
+  \prod_{\ell\mid q}\left(1-\frac1\ell\right)^{-2}
+  =\left(\frac q\Phi\right)^2.
+\end{equation}
+
+Suppose now that $\ell\nmid q$.
+If $\ell\nmid rs(s-r)$, then $\nu_\ell=3$ and, for $\ell\ge5$,
+\[
+  \left(1-\frac3\ell\right)\left(1-\frac1\ell\right)^{-3}<1.
+\]
+Hence generic primes can be discarded in an upper bound.
+If $\ell\mid rs(s-r)$, then $\nu_\ell\in\{1,2\}$ and the local factor is at most $1+K/\ell$ for an absolute $K$; the finitely many local possibilities at $2$ and $3$ are absorbed into the implied constant.
+Set
+\[
+  F(n):=\prod_{\ell\mid n}\left(1+\frac K\ell\right).
+\]
+Then
+\begin{equation}\label{eq:series-majorant}
+  \Ss_q(r,s)\ll
+  \left(\frac q\Phi\right)^2F(r)F(s)F(s-r).
+\end{equation}
+
+For a sufficiently large absolute $K_1$,
+\[
+  F(n)^3\le
+  \prod_{\ell\mid n}\left(1+\frac{K_1}{\ell}\right)
+  =\sum_{d\mid n}\frac{\mu^2(d)K_1^{\omega(d)}}{d}.
+\]
+Therefore
+\begin{equation}\label{eq:Fmean}
+  \sum_{n\le R}F(n)^3
+  \le R\sum_{d\ge1}\frac{\mu^2(d)K_1^{\omega(d)}}{d^2}
+  \ll R.
+\end{equation}
+Applying H\"older's inequality over the pairs $1\le r<s<R$ gives
+\begin{equation}\label{eq:holder}
+  \sum_{1\le r<s<R}F(r)F(s)F(s-r)\ll R^2.
+\end{equation}
+Consequently
+\begin{equation}\label{eq:series-average}
+  \sum_{1\le r<s<R}\Ss_q(r,s)
+  \ll R^2\left(\frac q\Phi\right)^2.
+\end{equation}
+
+Combining \eqref{eq:C3-shifts}, \eqref{eq:tuple-upper}, \eqref{eq:nonadmissible}, and \eqref{eq:series-average},
+\begin{align*}
+  C_3
+  &\ll \frac{X}{(\log X)^3}
+       R^2\left(\frac q\Phi\right)^2+R^2\\
+  &\ll \Phi.
+\end{align*}
+Indeed $R\le \Phi\log q/q$, $X\asymp\Phi\log q$, and $\log X\asymp\log q$.
+This proves the second estimate in \eqref{eq:key-moments}.
+
+\begin{checkpoint}[Three-tuple sieve and local factors]\label{check:triple}
+The two points most deserving independent checking are:
+\begin{enumerate}[label=(\roman*),leftmargin=2.2em]
+  \item that the upper bound \eqref{eq:tuple-upper} is uniform when the shifts $rq,sq$ vary with $q$ and can be as large as $X$; and
+  \item that the factor at every prime dividing $q$ is exactly $(1-1/\ell)^{-2}$, so that the global factor $(q/\ph(q))^2$ is cancelled by the number $R^2$ of shift pairs.
+\end{enumerate}
+The explicit formulation in \cite[Theorem 1]{Dubbe2024} appears to supply the required uniformity.
+\end{checkpoint}
+
+\section{Finite extraction of many repeated and empty classes}
+
+Choose absolute constants $\alpha,\beta>0$ such that, for all sufficiently large $q$,
+\[
+  C_2\ge\alpha\Phi,
+  \qquad C_3\le\beta\Phi.
+\]
+Let
+\[
+  D_2:=\#\{a\bmod q:(a,q)=1,\ N_a\ge2\}.
+\]
+Fix an integer $T\ge3$ so large that
+\begin{equation}\label{eq:Tchoice}
+  \frac{3\beta}{T-1}\le\frac\alpha2.
+\end{equation}
+For $k>T$,
+\[
+  \binom{k}{2}=\frac{3}{k-2}\binom{k}{3}
+  \le\frac{3}{T-1}\binom{k}{3}.
+\]
+Hence the contribution to $C_2$ from classes with $N_a>T$ is at most $\alpha\Phi/2$.
+It follows that
+\[
+  \sum_{2\le N_a\le T}\binom{N_a}{2}\ge\frac\alpha2\Phi.
+\]
+Each summand is at most $\binom T2$, and therefore
+\begin{equation}\label{eq:D2}
+  D_2\ge \delta\Phi,
+  \qquad
+  \delta:=\frac{\alpha}{2\binom T2}>0.
+\end{equation}
+
+Let
+\[
+  M:=\sum_{a\bmod q}^{*}N_a.
+\]
+For large $q$, all prime divisors of $q$ lie below $X$, so
+\[
+  M=\pi(X)-\omega(q)=\Phi+o(\Phi)
+\]
+by \eqref{eq:cutoff-asymp} and the prime number theorem.
+Let $O(X)$ denote the number of occupied reduced residue classes and $U(X)=\Phi-O(X)$ the number of empty ones.
+Every occupied class consumes one prime incidence, and every class counted by $D_2$ consumes at least one additional incidence. Thus
+\[
+  M\ge O(X)+D_2.
+\]
+Using \eqref{eq:D2},
+\begin{equation}\label{eq:empty-base}
+  U(X)\ge \Phi-M+D_2\ge(\delta-o(1))\Phi.
+\end{equation}
+
+This is the finite combinatorial step checked by the accompanying Lean development.
+
+\section{Enlarging the cutoff and completing the candidate proof}
+
+Let
+\[
+  Y:=(1+c)\Phi\log q
+\]
+for a fixed $c>0$ to be chosen.
+Since $X=(1+o(1))\Phi\log q$, the prime number theorem gives
+\begin{equation}\label{eq:new-primes}
+  \pi(Y)-\pi(X)=c\Phi+o(\Phi).
+\end{equation}
+Each newly admitted prime can fill at most one class that was empty at $X$.
+Therefore
+\[
+  U(Y)\ge U(X)-\bigl(\pi(Y)-\pi(X)\bigr)
+  \ge(\delta-c-o(1))\Phi.
+\]
+Choose, for example, $c=\delta/4$.
+Then for all sufficiently large $q$,
+\[
+  U(Y)\ge\frac\delta2\Phi.
+\]
+An empty class up to $\lfloor Y\rfloor$ has least congruent prime greater than $Y$.
+This gives \eqref{eq:target} with $C=\delta/2$.
+
+\begin{theorem}[Candidate conclusion]\label{thm:candidate}
+If the pointwise variance lower bound used in \cref{check:variance} and the uniform three-tuple upper sieve used in \cref{check:triple} apply with the stated uniformity, then there exist absolute constants $c,C>0$ such that \eqref{eq:target} holds for every sufficiently large $q$.
+\end{theorem}
+
+\section{Lean formalization and its exact scope}
+
+The file \texttt{lean/Erdos971Forum.lean} is a standalone Lean 4 development importing \texttt{Mathlib}.
+It defines finite occupancies, second and third factorial moments, empty and repeated class counts, prime occupancies modulo $d$, and the least prime in a congruence class.
+Its strongest arithmetic specialization is:
+
+\begin{lstlisting}
+theorem prime_moment_method_to_least_prime_classes
+    {d X0 X1 T : Nat} (hd : d != 0) (hT : 3 <= T) (hcut : X0 <= X1)
+    (pairConst tripleConst doubleConst massError extensionConst : Real)
+    (hPair : ...)
+    (hTriple : ...)
+    (hGap : ...)
+    (hTotal : ...)
+    (hIncrement : ...) :
+    (doubleConst - massError - extensionConst) * (d.totient : Real) <=
+      ((emptyLeastPrimeClasses d X1).card : Real)
+\end{lstlisting}
+
+The omitted hypotheses are written in full in the source file. They are exactly:
+\begin{enumerate}[leftmargin=2.2em]
+  \item a lower bound for the second factorial moment;
+  \item an upper bound for the third factorial moment;
+  \item a scalar truncation inequality selecting a fixed occupancy threshold;
+  \item an upper bound for total prime incidence at the base cutoff; and
+  \item an upper bound for incidences added when the cutoff is enlarged.
+\end{enumerate}
+The proof then returns a lower bound for the cardinality of
+\[
+  \{a<d:(a,d)=1,\ X_1<p(a,d)\}.
+\]
+The bridge from zero occupancy to the least-prime inequality uses mathlib's formalization of Dirichlet's theorem on primes in arithmetic progressions.
+
+\subsection{Reproducible checks}
+
+The package is pinned to Lean 4.27.0 and mathlib 4.27.0.
+From the \texttt{lean/} directory, run
+\begin{lstlisting}[language=bash]
+./check_source.sh
+\end{lstlisting}
+or equivalently
+\begin{lstlisting}[language=bash]
+lake update
+lake build
+lake env lean AnalyticTargets.lean
+lake env lean AuditAxioms.lean
+\end{lstlisting}
+The script rejects textual occurrences of \texttt{sorry}, \texttt{admit}, and \texttt{axiom} in the compiled core, and fails if \texttt{sorryAx} appears in the printed theorem dependencies.
+Foundational dependencies such as \texttt{propext}, \texttt{Quot.sound}, or \texttt{Classical.choice} can be normal in mathlib developments.
+
+\begin{center}
+\fcolorbox{statusborder}{statusblue}{%
+\begin{minipage}{0.91\textwidth}
+\textbf{What a successful Lean run establishes.}
+It establishes that the finite moment hypotheses imply the stated lower bound for classes with large least congruent prime, and that this implication contains no admitted Lean proof gaps.
+It does \emph{not} establish the analytic moment hypotheses themselves.
+Those remain the principal target for a complete end-to-end formal proof.
+\end{minipage}}
+\end{center}
+
+\section{Requested expert checks}
+
+A useful review can focus on the following finite list rather than rechecking every elementary step.
+
+\begin{enumerate}[leftmargin=2.4em]
+  \item \textbf{Variance theorem.} Verify the definition, centering, and uniformity of the Friedlander--Goldston bound for $q\ge X/\log X$.
+  \item \textbf{Diagonal cancellation.} Confirm that \eqref{eq:diagonal-cancel} is uniform for arbitrary, possibly very smooth, $q$.
+  \item \textbf{Prime powers.} Confirm the $o(X\log q)$ removal estimate in the weighted pair sum.
+  \item \textbf{Upper sieve.} Confirm that Dubbe's theorem, or a standard Selberg upper-bound sieve theorem, applies uniformly to $p,p+rq,p+sq$ for $r,s<R$.
+  \item \textbf{Nonadmissible patterns.} Confirm the bound $T_q(r,s)\le3$.
+  \item \textbf{Singular series.} Check the local-factor majorant \eqref{eq:series-majorant} and the H\"older average \eqref{eq:series-average}, especially when $q$ is highly composite.
+  \item \textbf{Cutoff bookkeeping.} Check floors, strict inequalities, and the passage from $X$ to the real cutoff $Y=(1+c)\Phi\log q$.
+  \item \textbf{Lean scope.} Rebuild the package and inspect \texttt{AuditAxioms.lean}; do not interpret compilation of the conditional core as a formal proof of the analytic inputs.
+\end{enumerate}
+
+Any failure in items 1 or 4--6 would invalidate the proposed closing argument. Conversely, if all eight checks pass, the argument appears to give an unconditional affirmative answer to Erd\H{o}s Problem 971.
+
+\section*{AI assistance disclosure}
+\addcontentsline{toc}{section}{AI assistance disclosure}
+
+The mathematical investigation, development of the candidate proof strategy,
+and preparation of this verification package were conducted with substantial
+assistance from OpenAI's GPT-5.6 Pro. The named human author is responsible for
+the decision to submit this draft and for its claims. The use of an AI system
+does not replace independent checking of the cited analytic inputs or expert
+review of the proposed argument.
+
+\section*{Acknowledgment of uncertainty}
+\addcontentsline{toc}{section}{Acknowledgment of uncertainty}
+
+This note was prepared as a verification-oriented research draft.
+The fact that the public problem remains open is substantial contrary evidence against treating the argument as settled without expert review.
+The Lean artifact narrows the possible failure to the analytic interface; it does not remove that possibility.
+
+\begin{thebibliography}{99}
+
+\bibitem{Dubbe2024}
+T. Dubbe,
+\emph{Explicit bounds for prime $k$-tuplets},
+arXiv:2409.04261, 2024.
+\url{https://arxiv.org/abs/2409.04261}
+
+\bibitem{Erdos1950}
+P. Erd\H{o}s,
+\emph{On some applications of Brun's method},
+Acta Sci. Math. (Szeged) \textbf{13} (1950), no. 1, 57--63.
+
+\bibitem{ErdosProblems971}
+T. F. Bloom,
+\emph{Erd\H{o}s Problem 971},
+Erd\H{o}s Problems database, accessed 25 July 2026.
+\url{https://www.erdosproblems.com/971}
+
+\bibitem{Fiorilli2015}
+D. Fiorilli,
+\emph{The distribution of the variance of primes in arithmetic progressions},
+Int. Math. Res. Not. IMRN 2015, no. 12, 4421--4448;
+arXiv:1301.5663.
+\url{https://arxiv.org/abs/1301.5663}
+
+\bibitem{FriedlanderGoldston1996}
+J. B. Friedlander and D. A. Goldston,
+\emph{Variance of distribution of primes in residue classes},
+Q. J. Math. \textbf{47} (1996), 313--336.
+\url{https://doi.org/10.1093/qmath/47.3.313}
+
+\bibitem{FormalConjectures}
+The Formal Conjectures Authors,
+\emph{Formal Conjectures repository}, 2025--2026.
+\url{https://github.com/google-deepmind/formal-conjectures}
+
+\bibitem{Leung2024}
+S.-K. Leung,
+\emph{Moments of primes in progressions to a large modulus},
+arXiv:2402.07941, 2024.
+\url{https://arxiv.org/abs/2402.07941}
+
+\end{thebibliography}
+
+\end{document}

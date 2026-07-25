@@ -1,0 +1,28 @@
+name: Lean verification
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: true
+          lake-package-directory: lean
+      - name: Check analytic target statements
+        run: lake env lean AnalyticTargets.lean
+        working-directory: lean
+      - name: Print theorem axiom dependencies
+        run: |
+          lake env lean AuditAxioms.lean | tee axioms.log
+          ! grep -q sorryAx axioms.log
+        working-directory: lean
+      - name: Reject textual trust escapes in compiled core
+        run: '! grep -nE "(^|[^[:alnum:]_])(sorry|admit|axiom)([^[:alnum:]_]|$)" Erdos971Forum.lean'
+        working-directory: lean

@@ -1,0 +1,109 @@
+\begin{equation}\label{eq:increment}
+ \pi(Y)-\pi(X)=c\Phi+o(\Phi).
+\end{equation}
+Indeed, $Y/X\to1+c$, $\log X\sim\log q$, and the floor discrepancy in \cref{eq:floor} contributes only $o(\Phi)$ primes.
+
+Each newly admitted prime can fill at most one class that was empty at $X$.  Thus
+\[
+ U(Y)\ge U(X)-\bigl(\pi(Y)-\pi(X)\bigr)
+ \ge(\delta-c-o(1))\Phi.
+\]
+Choose
+\[
+ c:=\frac\delta4.
+\]
+Then, for all sufficiently large $q$,
+\begin{equation}\label{eq:UY}
+ U(Y)\ge\frac\delta2\Phi.
+\end{equation}
+If a reduced residue class contains no prime at most $\lfloor Y\rfloor$, its least congruent prime, being an integer, is strictly greater than $Y$.  We have proved the following.
+
+\begin{theorem}[Candidate resolution of Erd\H{o}s Problem 971]\label{thm:main}
+There exist absolute constants $c,C>0$ and $q_0$ such that, for every integer $q\ge q_0$,
+\[
+ \#\{a\pmod q:(a,q)=1,\ p(a,q)>(1+c)\ph(q)\log q\}
+ \ge C\ph(q).
+\]
+One may take $c=\delta/4$ and $C=\delta/2$, with $\delta$ defined in \cref{eq:D2}.
+\end{theorem}
+
+\section*{Lean status and exact claim}
+\addcontentsline{toc}{section}{Lean status and exact claim}
+
+The existing Lean 4 development proves the following finite implication without project-local axioms or admitted proof terms:
+
+\begin{quote}
+If the second factorial moment has a positive linear lower bound, the third factorial moment has a linear upper bound, the total mass at the base cutoff is at most $(1+o(1))$ times the number of classes, and the cutoff extension adds sufficiently little mass, then a positive linear number of reduced residue classes have least congruent prime beyond the enlarged cutoff.
+\end{quote}
+
+Its strongest arithmetic specialization is named
+\[
+ \texttt{prime\_moment\_method\_to\_least\_prime\_classes}.
+\]
+It also proves
+\[
+ N_a(X)=0\quad\Longleftrightarrow\quad X<p(a,q)
+\]
+for reduced classes, using mathlib's formalized Dirichlet theorem.
+
+The present paper supplies the missing informal analytic instantiation:
+\[
+ C_2\ge\alpha\Phi,\qquad C_3\le\beta\Phi,
+ \qquad M=\Phi+o(\Phi),
+ \qquad \pi(Y)-\pi(X)=c\Phi+o(\Phi).
+\]
+However, importing these as assumptions into Lean is not the same as proving them in Lean.  A genuinely complete formal verification would require substantial new mathlib developments for:
+
+\begin{enumerate}[leftmargin=2em]
+ \item Chebyshev functions and their second weighted moment in the required asymptotic form;
+ \item the pointwise Friedlander--Goldston variance theorem;
+ \item the explicit or abstract three-dimensional upper-bound sieve;
+ \item Euler-product singular-series estimates and the H\"older average above;
+ \item the PNT and totient estimates assembled with all uniform quantifiers and floors.
+\end{enumerate}
+
+
+
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+The earlier bottlenecks were not instances of a remaining parity obstruction.  The necessary pair lower bound is already encoded in the known pointwise variance lower bound, and the concentration problem is controlled by a standard three-tuple upper sieve.  After the singular series is averaged with its exact $q$-local factors, the argument closes for every sufficiently large modulus.
+
+This provides a candidate affirmative solution of Erd\H{o}s Problem 971.  The next step is independent review by an analytic number theorist and, if the proof survives that review, circulation as a conventional preprint or journal submission.  The lack of end-to-end Lean formalization should be stated explicitly and should not be conflated with a gap in the informal analytic proof.
+
+\begin{thebibliography}{99}
+
+\bibitem{Dubbe2024}
+T. Dubbe,
+\emph{Explicit bounds for prime $k$-tuplets},
+arXiv:2409.04261, 2024.
+\url{https://arxiv.org/abs/2409.04261}
+
+\bibitem{Erdos1950}
+P. Erd\H{o}s,
+\emph{On some applications of Brun's method},
+Acta Sci. Math. (Szeged) \textbf{13} (1950), 57--63.
+
+\bibitem{Fiorilli2015}
+D. Fiorilli,
+\emph{The distribution of the variance of primes in arithmetic progressions},
+Int. Math. Res. Not. IMRN 2015, no. 12, 4421--4448;
+arXiv:1301.5663.
+\url{https://arxiv.org/abs/1301.5663}
+
+\bibitem{FG1996}
+J. B. Friedlander and D. A. Goldston,
+\emph{Variance of distribution of primes in residue classes},
+Q. J. Math. \textbf{47} (1996), 313--336.
+\url{https://doi.org/10.1093/qmath/47.3.313}
+
+\bibitem{Leung2025}
+S.-K. Leung,
+\emph{Moments of primes in progressions to a large modulus},
+Forum Math. (2025), published online;
+arXiv:2402.07941.
+\url{https://arxiv.org/abs/2402.07941}
+
+\end{thebibliography}
+
+\end{document}

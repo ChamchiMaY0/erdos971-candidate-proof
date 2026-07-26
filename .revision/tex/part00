@@ -1,0 +1,130 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!55!black,
+  citecolor=blue!55!black,
+  urlcolor=blue!55!black,
+  pdftitle={A complete candidate proof of Erdos Problem 971},
+  pdfauthor={KyungMin Han}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Candidate proof of Erd\H{o}s Problem 971}
+\rhead{Page \thepage\ of \pageref{LastPage}}
+\setlength{\headheight}{14pt}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{checkpoint}[theorem]{Integrity checkpoint}
+
+\newcommand{\ph}{\varphi}
+\newcommand{\Ss}{\mathfrak S}
+\newcommand{\Pp}{\mathbb P}
+\newcommand{\N}{\mathbb N}
+\newcommand{\R}{\mathbb R}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\1}{\mathbf 1}
+\newcommand{\OO}{\mathrm O}
+\newcommand{\om}{\omega}
+
+\definecolor{statusblue}{RGB}{235,244,252}
+\definecolor{statusborder}{RGB}{48,97,145}
+\definecolor{warningbg}{RGB}{255,248,226}
+\definecolor{warningborder}{RGB}{164,116,20}
+\definecolor{passbg}{RGB}{237,249,239}
+\definecolor{passborder}{RGB}{45,120,59}
+
+\title{\bfseries A Complete Candidate Proof of Erd\H{o}s Problem 971\\[0.4em]
+\large Pointwise variance and a uniform three-tuple upper sieve}
+\author{KyungMin Han}
+\date{26 July 2026}
+
+\begin{document}
+\maketitle
+
+
+
+\begin{center}
+\fcolorbox{warningborder}{warningbg}{%
+\begin{minipage}{0.92\textwidth}
+\textbf{AI-assistance disclosure.}
+The research exploration, proof organization, drafting, and formalization workflow for this manuscript were substantially assisted using OpenAI's GPT-5.6 Pro.
+The author has reviewed the argument and assumes responsibility for every mathematical claim, citation, and error in the manuscript.
+\end{minipage}}
+\end{center}
+
+\begin{abstract}
+For a reduced residue class $a\pmod q$, let $p(a,q)$ be the least prime congruent to $a\pmod q$.
+We prove, subject only to the correctness of cited published theorems, that there are absolute constants $c,C>0$ such that, for every sufficiently large $q$,
+\[
+ \#\{a\pmod q:(a,q)=1,\ p(a,q)>(1+c)\ph(q)\log q\}\ge C\ph(q).
+\]
+At the critical cutoff $X\sim\ph(q)\log q$, the pointwise Friedlander--Goldston variance lower bound forces the second factorial moment of the prime occupancies to satisfy $C_2\gg\ph(q)$.
+A uniform three-linear-form upper sieve, followed by an explicit average of the associated singular series, gives $C_3\ll\ph(q)$ even for very smooth moduli.
+These two bounds force a positive proportion of residue classes to contain at least two primes below $X$.
+Since the total number of prime incidences is only $\ph(q)+o(\ph(q))$, a positive proportion of classes are empty.
+The prime number theorem then preserves a positive proportion of empty classes after the cutoff is enlarged to $(1+c)\ph(q)\log q$.
+Every previously identified issue---centering, floors, prime powers, nonadmissible triples, coefficient uniformity, and smooth-modulus local factors---is treated explicitly.
+\end{abstract}
+
+\tableofcontents
+
+\section{Statement and external inputs}
+
+For $(a,q)=1$, define
+\[
+ p(a,q):=\min\{p\in\Pp:p\equiv a\pmod q\}.
+\]
+Dirichlet's theorem guarantees that this minimum exists.
+The problem asks whether there is an absolute $c>0$ such that, for every sufficiently large $q$,
+\begin{equation}\label{eq:target}
+ \#\{a\pmod q:(a,q)=1,\ p(a,q)>(1+c)\ph(q)\log q\}\gg\ph(q).
+\end{equation}
+
+The proof uses the following two non-elementary theorems.
+
+\begin{theorem}[Friedlander--Goldston pointwise variance lower bound]\label{thm:FG}
+Let
+\[
+ V(x;q):=\sum_{a\bmod q}^{*}
+ \left(\psi(x;q,a)-\frac{\psi(x,\chi_0)}{\ph(q)}\right)^2.
+\]
+For every fixed $A>0$, uniformly for
+\[
+ \frac{x}{(\log x)^A}\le q\le x,
+\]
+one has
+\[
+ V(x;q)\ge\left(\frac12-o(1)\right)x\log q
+\]
+as $x\to\infty$.
+\end{theorem}
+
+This formulation is recorded by Fiorilli from Friedlander and Goldston's theorem.  The original paper uses an equivalent centering by $x/\ph(q)$; the transfer between the two centerings is checked in \cref{sec:pair}.
+
+\begin{theorem}[Uniform three-tuple upper bound]\label{thm:Dubbe}
+Let $a_1,a_2,b_1,b_2\in\mathbb Z$, and suppose the three forms
+\[
+ m,\qquad a_1m+b_1,\qquad a_2m+b_2
+\]

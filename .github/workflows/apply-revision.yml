@@ -1,3 +1,4 @@
+# Retriggered after workflow became active on the default branch.
 name: Apply revised manuscript sources
 
 on:

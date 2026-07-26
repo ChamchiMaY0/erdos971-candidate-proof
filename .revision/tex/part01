@@ -1,0 +1,130 @@
+are nondegenerate and admissible.  Then, uniformly in the coefficients, for all sufficiently large $x$,
+\[
+ \#\{p\le x:p,\ a_1p+b_1,\ a_2p+b_2\text{ are prime}\}
+ \ll \Ss\,\frac{x}{(\log x)^3},
+\]
+where
+\[
+ \Ss=\prod_{\ell}
+ \left(1-\frac{\rho(\ell)}{\ell}\right)
+ \left(1-\frac1\ell\right)^{-3}
+\]
+and $\rho(\ell)$ is the number of roots modulo $\ell$ of the product of the three forms.
+The implied constant is absolute.
+\end{theorem}
+
+For direct reproducibility one may use Dubbe's explicit Theorem 1.  In the case of three forms it gives the factor $48$ times the singular series and an explicit correction tending to $1$.  For example, once $\log x\ge100$, its polynomial correction is less than $2$, so an absolute constant $96$ is sufficient.
+
+\begin{remark}
+Both inputs are unconditional.  The proof below does not use GRH, Elliott--Halberstam, Hardy--Littlewood, or a lower-bound sieve for a fixed prime pair.
+\end{remark}
+
+\section{The critical cutoff}
+
+Write
+\[
+ \Phi:=\ph(q),\qquad
+ R:=\left\lfloor\frac{\Phi\log q}{q}\right\rfloor,
+ \qquad X:=qR.
+\]
+The standard uniform estimate
+\[
+ \frac{q}{\ph(q)}\ll\log\log q
+\]
+implies
+\[
+ R\gg\frac{\log q}{\log\log q}\longrightarrow\infty.
+\]
+Hence $R\ge1$ and $X\ge q$ for all sufficiently large $q$.
+Moreover,
+\begin{equation}\label{eq:floor}
+ 0\le\Phi\log q-X<q,
+\end{equation}
+so
+\begin{equation}\label{eq:Xasymp}
+ X=(1+o(1))\Phi\log q.
+\end{equation}
+Since $R\le\log q$,
+\begin{equation}\label{eq:FG-range}
+ q=\frac XR\ge\frac{X}{\log q}>\frac{X}{\log X}.
+\end{equation}
+Thus $(X,q)$ lies in the range of \cref{thm:FG} with $A=1$.
+We also have
+\begin{align}
+ \frac X\Phi
+ &=\log q+\OO\!\left(\frac q\Phi\right)
+  =\log q+\OO(\log\log q),\label{eq:Xoverphi}\\
+ \log X&=\log q+\log R=\log q+\OO(\log\log q),\label{eq:logX}\\
+ \frac{X}{\log X}&=(1+o(1))\Phi.\label{eq:XlogX}
+\end{align}
+
+For each reduced residue class $a\pmod q$, put
+\[
+ N_a=N_a(X):=\#\{p\le X:p\equiv a\pmod q\}
+\]
+and define
+\[
+ C_2:=\sum_{a\bmod q}^{*}\binom{N_a}{2},
+ \qquad
+ C_3:=\sum_{a\bmod q}^{*}\binom{N_a}{3}.
+\]
+We prove
+\begin{equation}\label{eq:moments-goal}
+ C_2\gg\Phi,\qquad C_3\ll\Phi.
+\end{equation}
+
+\section{The second factorial moment from pointwise variance}\label{sec:pair}
+
+For a reduced residue class $a\pmod q$, let
+\[
+ \psi_a:=\sum_{\substack{n\le X\\n\equiv a\ (q)}}\Lambda(n),
+ \qquad
+ S:=\sum_{\substack{n\le X\\(n,q)=1}}\Lambda(n)=\psi(X,\chi_0).
+\]
+Set
+\[
+ V_S(X;q):=\sum_{a\bmod q}^{*}
+ \left(\psi_a-\frac S\Phi\right)^2.
+\]
+
+\subsection{Centering and exact expansion}
+
+If the cited variance theorem is stated with center $X/\Phi$, then
+\begin{equation}\label{eq:center-transfer}
+ \sum_a^*\left(\psi_a-\frac X\Phi\right)^2
+ =V_S(X;q)+\frac{(S-X)^2}{\Phi}.
+\end{equation}
+The prime number theorem gives $S=X+o(X)$, uniformly along the present sequence of $q$, because the omitted prime powers based on primes dividing $q$ contribute at most
+\[
+ \sum_{p\mid q}\left\lfloor\frac{\log X}{\log p}\right\rfloor\log p
+ \le \om(q)\log X\ll(\log q)(\log X)=o(X).
+\]
+Consequently
+\[
+ \frac{(S-X)^2}{\Phi}=o\!\left(\frac{X^2}{\Phi}\right)
+ =o(X\log q),
+\]
+by \cref{eq:Xoverphi}.  Thus the two centerings have the same lower bound for our purpose.
+
+Define
+\[
+ D_\Lambda:=\sum_{\substack{n\le X\\(n,q)=1}}\Lambda(n)^2
+\]
+and
+\[
+ P_\Lambda:=
+ \sum_{\substack{m<n\le X\\m\equiv n\ (q)\\(mn,q)=1}}
+ \Lambda(m)\Lambda(n).
+\]
+Opening the square gives the exact identity
+\begin{equation}\label{eq:variance-expand}
+ V_S(X;q)=D_\Lambda+2P_\Lambda-\frac{S^2}{\Phi}.
+\end{equation}
+
+\subsection{Diagonal cancellation}
+
+The prime number theorem and partial summation give
+\begin{equation}\label{eq:D-asymp}
+ \sum_{n\le X}\Lambda(n)^2=X\log X+\OO(X).
+\end{equation}
+Removing the powers of primes dividing $q$ costs at most

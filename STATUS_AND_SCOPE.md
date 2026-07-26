@@ -8,7 +8,7 @@
 
 The manuscript presents a candidate unconditional proof using two published unconditional inputs:
 
-1. the Friedlander–Goldston pointwise lower bound for the variance of primes in arithmetic progressions; and
+1. the Friedlander-Goldston pointwise lower bound for the variance of primes in arithmetic progressions; and
 2. a uniform upper-bound sieve for three linear forms.
 
 No unproved prime-tuple conjecture is invoked. The argument should nevertheless be treated as a candidate proof until the cited theorem statements, their uniformity, and their application are independently checked by specialists.
@@ -22,7 +22,7 @@ The accompanying Lean development is sorry-free and verifies the finite combinat
 - a total-incidence estimate at the base cutoff; and
 - an increment estimate between the two cutoffs.
 
-The Lean file does not formalize the Friedlander–Goldston variance theorem, the three-linear-form upper sieve, the singular-series average, or the required prime-number-theorem asymptotics. It is therefore a complete formal proof of the conditional finite implication, not an end-to-end formal proof of the analytic manuscript.
+The Lean file does not formalize the Friedlander-Goldston variance theorem, the three-linear-form upper sieve, the singular-series average, or the required prime-number-theorem asymptotics. It is therefore a complete formal proof of the conditional finite implication, not an end-to-end formal proof of the analytic manuscript.
 
 ## AI assistance
 

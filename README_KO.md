@@ -8,11 +8,12 @@
 
 ## 주요 파일
 
-- `Erdos971_candidate_verification_note.pdf`: 수정된 PDF. 기존 `blob/main`
-  링크가 계속 최신 문서를 열도록 기존 경로를 유지한다.
-- `source/erdos971_candidate.tex`: LaTeX 원문.
-- `lean/Erdos971Forum.lean`: PDF에 대응하는 Lean 환원 파일. 기존 링크를
-  유지하기 위해 기존 경로에 새 설명 헤더를 반영했다.
+- `erdos971_candidate_proof.pdf`: 다운로드 수정본과 일치하는 PDF.
+- `erdos971_candidate_proof.tex`: 다운로드 수정본과 일치하는 LaTeX 원문.
+- `Erdos971_candidate_verification_note.pdf` 및
+  `source/erdos971_candidate.tex`: 기존 링크를 위한 동일 내용의 호환 경로.
+- `lean/Erdos971Forum.lean`: 기존 Lean 환원 파일. 이번 문서 수정에서는
+  변경하지 않았다.
 - `STATUS_AND_SCOPE.md`: 수학적 상태와 Lean 검증 범위.
 - `DISCUSSION_POST.md`: 정정 댓글이나 토의에 사용할 별도 문안.
 - `VERIFICATION.md`: 빌드 및 공리 감사 기록.

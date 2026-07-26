@@ -25,9 +25,8 @@ The principal theorem dependency report was:
 
 No `sorryAx` dependency was reported.
 
-The revised `lean/Erdos971Forum.lean` changes only the manuscript-facing
-header relative to the previously verified standalone file; its mathematical
-definitions, theorem statements, and proof terms are unchanged.
+The tracked Lean files, including `lean/Erdos971Forum.lean`, are preserved
+unchanged in the manuscript revision.
 
 ## PDF
 

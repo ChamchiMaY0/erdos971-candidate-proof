@@ -15,7 +15,7 @@ and let \(N_a(X)\) count primes up to \(X\) in the reduced class \(a\pmod q\). T
 \sum_a^*\binom{N_a(X)}2\gg\phi(q)
 \]
 
-from the pointwise Friedlander–Goldston lower bound for Hooley's variance. The variance is expanded exactly; the diagonal term cancels at the critical cutoff, and proper prime powers contribute only \(o(X\log q)\).
+from the pointwise Friedlander-Goldston lower bound for Hooley's variance. The variance is expanded exactly; the diagonal term cancels at the critical cutoff, and proper prime powers contribute only \(o(X\log q)\).
 
 It also establishes
 
@@ -39,6 +39,6 @@ The accompanying sorry-free Lean file verifies the finite combinatorial reductio
 N_a(X)=0\Longleftrightarrow X<p(a,q),
 \]
 
-conditional on explicit analytic hypotheses. It does not formalize the Friedlander–Goldston theorem, the upper-bound sieve, the singular-series average, or the prime-number-theorem asymptotics.
+conditional on explicit analytic hypotheses. It does not formalize the Friedlander-Goldston theorem, the upper-bound sieve, the singular-series average, or the prime-number-theorem asymptotics.
 
 The points most in need of independent checking are the exact normalization and range of the pointwise variance estimate, the uniformity of the three-linear-form upper sieve, and the singular-series averaging for smooth moduli.

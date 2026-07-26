@@ -10,11 +10,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: leanprover/lean-action@v1
-        with:
-          auto-config: false
-          build: false
-          lake-package-directory: lean
+
+      - name: Install elan and Lean toolchain
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.elan/bin:$PATH"
+          elan toolchain install "$(cat lean/lean-toolchain)"
+          elan show
+
+      - name: Fetch mathlib cache
+        working-directory: lean
+        shell: bash
+        run: |
+          set -euxo pipefail
+          lake update
+          lake exe cache get
+
       - name: Build Lean project with full log
         id: lean-build
         working-directory: lean
@@ -22,12 +37,14 @@ jobs:
         run: |
           set -o pipefail
           lake build 2>&1 | tee build.log
+
       - name: Check analytic target statements
         working-directory: lean
         shell: bash
         run: |
           set -o pipefail
           lake env lean AnalyticTargets.lean 2>&1 | tee analytic-targets.log
+
       - name: Print theorem axiom dependencies
         working-directory: lean
         shell: bash
@@ -35,9 +52,11 @@ jobs:
           set -o pipefail
           lake env lean AuditAxioms.lean 2>&1 | tee axioms.log
           ! grep -q sorryAx axioms.log
+
       - name: Reject textual trust escapes in compiled core
         working-directory: lean
         run: '! grep -nE "(^|[^[:alnum:]_])(sorry|admit|axiom)([^[:alnum:]_]|$)" Erdos971Forum.lean'
+
       - name: Upload Lean verification logs
         if: always()
         uses: actions/upload-artifact@v4

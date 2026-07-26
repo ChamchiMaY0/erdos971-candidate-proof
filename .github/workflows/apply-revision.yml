@@ -1,9 +1,8 @@
-# Applies the exact staged revision on the default branch.
-name: Apply revised manuscript sources
+name: Materialize revised manuscript sources
 
 on:
   push:
-    branches: [main]
+    branches: [revised-paper-and-lean]
     paths:
       - .revision/**
       - .github/workflows/apply-revision.yml
@@ -13,10 +12,12 @@ permissions:
   contents: write
 
 jobs:
-  apply:
+  materialize:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: revised-paper-and-lean
 
       - name: Assemble revised LaTeX and update Lean header
         shell: bash
@@ -50,13 +51,13 @@ open scoped BigOperators'''
           PY
           sha256sum source/erdos971_candidate.tex lean/Erdos971Forum.lean
 
-      - name: Commit revised source files
+      - name: Commit materialized files to the update branch
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add source/erdos971_candidate.tex lean/Erdos971Forum.lean
           if ! git diff --cached --quiet; then
-            git commit -m "Apply revised manuscript and Lean documentation"
-            git push
+            git commit -m "Materialize revised manuscript and Lean file"
+            git push origin HEAD:revised-paper-and-lean
           fi

@@ -1,16 +1,16 @@
-# Local verification record
+# Verification record
 
-Verified on 25 July 2026 with Lean 4.27.0 and mathlib v4.27.0.
+Updated on 26 July 2026.
 
 ## Lean
 
-The following command completed successfully from `lean/`:
+The finite reduction was independently rebuilt in a GitHub-hosted Ubuntu
+environment with Lean 4.27.0 and mathlib v4.27.0. The build completed
+successfully, as did the checks of `AnalyticTargets.lean`, `AuditAxioms.lean`,
+and the textual scan for `sorry`, `admit`, and project-declared `axiom` in the
+compiled core.
 
-```bash
-./check_source.sh
-```
-
-The fresh build completed 7,886 jobs. The principal theorem dependency report was:
+The principal theorem dependency report was:
 
 ```text
 'Erdos971LeanAudit.moment_method_with_extension' depends on axioms:
@@ -23,24 +23,26 @@ The fresh build completed 7,886 jobs. The principal theorem dependency report wa
 [propext, Classical.choice, Quot.sound]
 ```
 
-No `sorryAx` dependency was reported. The compiled core also passed the textual scan
-for `sorry`, `admit`, and project-declared `axiom`.
+No `sorryAx` dependency was reported.
+
+The revised `lean/Erdos971Forum.lean` changes only the manuscript-facing
+header relative to the previously verified standalone file; its mathematical
+definitions, theorem statements, and proof terms are unchanged.
 
 ## PDF
 
-`source/build_pdf.sh` completed with Tectonic 0.16.9. The resulting PDF has:
+The revised manuscript has:
 
-- 10 US Letter pages;
-- `Kyungmin` as both the visible author and PDF metadata author;
-- an explicit disclosure of substantial GPT-5.6 Pro assistance;
-- no embedded copy of the separate forum-post draft;
-- no encryption, forms, or JavaScript;
-- six unique external reference links; and
-- no visible clipping, overlap, or broken glyphs in a rendered review of all pages.
+- visible and metadata author `KyungMin Han`;
+- explicit disclosure of substantial assistance from OpenAI's GPT-5.6 Pro;
+- Status and Scope removed to `STATUS_AND_SCOPE.md`;
+- discussion/posting material removed to `DISCUSSION_POST.md`;
+- no embedded forum-specific status or rules section.
 
 ## Scope
 
-These checks verify the conditional finite Lean reduction and package reproducibility.
-They do not prove the Friedlander-Goldston variance theorem, the uniform three-tuple
-upper sieve, the singular-series average, or the asymptotic estimates needed to
-instantiate the analytic hypotheses.
+These checks verify the conditional finite Lean reduction and package
+reproducibility. They do not constitute an end-to-end Lean formalization of the
+Friedlander–Goldston variance theorem, the three-linear-form upper sieve, the
+singular-series average, or the asymptotic estimates needed to instantiate the
+analytic hypotheses.

@@ -27,13 +27,27 @@ jobs:
       - name: Copy to legacy-compatible public path
         run: cp source/erdos971_candidate.pdf Erdos971_candidate_verification_note.pdf
 
-      - name: Commit generated PDF when changed
+      - name: Generate current checksum manifest
+        shell: bash
+        run: |
+          sha256sum \
+            Erdos971_candidate_verification_note.pdf \
+            README.md README_KO.md STATUS_AND_SCOPE.md DISCUSSION_POST.md \
+            FORUM_POST.md VERIFICATION.md \
+            source/erdos971_candidate.tex source/build_pdf.sh \
+            lean/Erdos971Forum.lean lean/AnalyticTargets.lean \
+            lean/AuditAxioms.lean lean/check_source.sh \
+            lean/lakefile.toml lean/lean-toolchain \
+            .github/workflows/lean.yml .github/workflows/pdf.yml \
+            > MANIFEST.sha256
+
+      - name: Commit generated PDF and manifest when changed
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Erdos971_candidate_verification_note.pdf
+          git add Erdos971_candidate_verification_note.pdf MANIFEST.sha256
           if ! git diff --cached --quiet; then
-            git commit -m "Rebuild revised manuscript PDF"
+            git commit -m "Rebuild revised manuscript PDF and manifest"
             git push
           fi

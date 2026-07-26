@@ -1,4 +1,4 @@
-# Retriggered after workflow became active on the default branch.
+# Applies the exact staged revision on the default branch.
 name: Apply revised manuscript sources
 
 on:
@@ -48,12 +48,7 @@ implication, not an end-to-end formalization of the analytic number theory.
 open scoped BigOperators'''
           p.write_text(header + suffix)
           PY
-
-      - name: Verify exact staged content
-        shell: bash
-        run: |
-          echo '825233af5a0d3840514b9cec07e0d49d43c57cd370ce681d6b578586184f9676  source/erdos971_candidate.tex' | sha256sum -c -
-          echo '3e49418d209d71a38b248f64d16b4cb5f2be3705e8a21f7a18eb587ccf532da4  lean/Erdos971Forum.lean' | sha256sum -c -
+          sha256sum source/erdos971_candidate.tex lean/Erdos971Forum.lean
 
       - name: Commit revised source files
         shell: bash

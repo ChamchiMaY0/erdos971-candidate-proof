@@ -31,7 +31,6 @@ jobs:
           lake exe cache get
 
       - name: Build Lean project with full log
-        id: lean-build
         working-directory: lean
         shell: bash
         run: |
@@ -57,13 +56,29 @@ jobs:
         working-directory: lean
         run: '! grep -nE "(^|[^[:alnum:]_])(sorry|admit|axiom)([^[:alnum:]_]|$)" Erdos971Forum.lean'
 
-      - name: Upload Lean verification logs
+      - name: Prepare exact verified paper package
+        working-directory: lean
+        shell: bash
+        run: |
+          set -euxo pipefail
+          cp Erdos971Forum.lean Erdos971Paper.lean
+          sha256sum Erdos971Forum.lean Erdos971Paper.lean > SHA256SUMS.txt
+
+      - name: Upload exact verified Lean package
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lean-verification-logs
+          name: erdos971-verified-lean-package
           path: |
+            lean/Erdos971Forum.lean
+            lean/Erdos971Paper.lean
+            lean/AnalyticTargets.lean
+            lean/AuditAxioms.lean
+            lean/lakefile.toml
+            lean/lean-toolchain
+            lean/lake-manifest.json
             lean/build.log
             lean/analytic-targets.log
             lean/axioms.log
-          if-no-files-found: warn
+            lean/SHA256SUMS.txt
+          if-no-files-found: error
